@@ -8,7 +8,7 @@ No setup necessary - just serve this directory through an HTTP server of your ch
 
 ```bash
 git clone https://github.com/Aloshi/wkrs
-cd wkrs
+cd wkrs/html
 python -m SimpleHTTPServer
 ```
 
