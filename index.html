@@ -1,0 +1,125 @@
+<html>
+<head>
+  <!--Import Google Icon Font-->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!--Import materialize.css-->
+  <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+  <link type="text/css" rel="stylesheet" href="css/wkrs.css"/>
+
+  <!--Let browser know website is optimized for mobile-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8"/>
+</head>
+<body>
+  <script type="text/javascript" src="js/jquery-3.2.1.js"></script>
+  <script type="text/javascript" src="js/materialize.js"></script>
+  <script type="text/javascript" src="js/wkrs.js"></script>
+
+  <div class="container">
+    <h2>Wanikani Radical Search</h2>
+
+    <div class="chips-rs"></div>
+
+    <h2>Matching Kanji</h2>
+    <div id="kanjis" class="row">
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // fetch data
+    $.when($.ajax('data/kanji_parsed.json'), $.ajax('data/radicals_parsed.json'))
+      .then(function (kanjis, radicals) {
+        kanjis = kanjis[0];
+        radicals = radicals[0];
+
+        // set up radical autocomplete + chips system
+        // build data
+        rad_autocomplete_data = {};
+        radicals.forEach(function (rad) {
+          rad.names.forEach(function (name) {
+            rad_autocomplete_data[name] = {
+              value: {tag: rad['character'] + ' (' + name + ')', radical_id: rad['wk_id']},
+              rhs: function() {
+                var rhs = document.createElement('span');
+                if (rad['character']) {
+                  rhs.innerHTML = rad['character'];
+                }
+                return $(rhs);
+              }
+            };
+          });
+        });
+
+        // hook up radical autocomplete
+        $('.chips-rs').material_chip({
+          placeholder: 'Start typing',
+          secondaryPlaceholder: 'Enter more?',
+          autocompleteOptions: {
+            data: rad_autocomplete_data,
+            limit: 5,
+            minLength: 1
+          },
+          autocompleteOnly: true
+        });
+
+        // kanji updater
+        function get_possible_kanji(radical_ids) {
+          var possible = [];
+          kanjis.forEach(function (kanji) {
+            var ok = true;
+            radical_ids.forEach(function (rid) {
+              if (!kanji.wk_radical_ids.includes(rid)) {
+                ok = false;
+                return;
+              }
+            });
+            if (ok)
+              possible.push(kanji);
+          });
+          return possible;
+        }
+
+        function updateKanjiList(radical_ids) {
+          var kanjis_div = $('#kanjis');
+          kanjis_div.empty();
+
+          var results = (radical_ids.length > 0) ? get_possible_kanji(radical_ids) : [];
+          if (results.length > 0) {
+            results.forEach(function (r, idx) {
+              var div = document.createElement('div');
+              $(div).addClass('col s2 kanji-box');
+              kanjis_div.append(div);
+
+              var character = document.createElement('p');
+              $(character).addClass('kanji-box-character');
+              $(character).text(r.character);
+              div.append(character);
+
+              var name = document.createElement('p');
+              $(name).addClass('kanji-box-meaning');
+              $(name).text(r.meanings[0]);
+              div.append(name);
+            });
+          } else {
+            kanjis_div.append('<p>No matching kanjis!</p>');
+          }
+        }
+
+        $('.chips-rs').on('chip.add chip.delete', function() {
+          // get radical_ids from chip data
+          var data = $('.chips-rs').material_chip('data');
+          var radical_ids = data.map(function (rad) {
+            return rad.radical_id;
+          });
+          updateKanjiList(radical_ids);
+        });
+
+        updateKanjiList([]);
+
+      }).fail(function (err) {
+        alert('Error fetching data: ' + err);
+      });
+  });
+  </script>
+</body>
+</html>

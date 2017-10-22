@@ -1,0 +1,21 @@
+.kanji-box {
+  border: 2px solid;
+  text-align: center;
+  margin-left: -2px;
+  margin-right: -2px;
+  margin-bottom: -2px; !important
+  margin-top: -2px; !important
+}
+
+.kanji-box-character {
+  text-align: center;
+  font-size: 22pt;
+  margin-top: 2px;
+  margin-bottom: 0px;
+}
+
+.kanji-box-meaning {
+  text-align: center;
+  margin-top: 0px;
+  margin-bottom: 2px;
+}
